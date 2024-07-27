@@ -1,0 +1,19 @@
+name: main-project-workflow
+run-name: main-project-workflow name
+on:
+  push:
+    branches:
+      - github-actions
+
+jobs:
+  print-repo-secret:
+    runs-on: ubuntu-latest
+    steps:
+      - name:  Log the repository secret
+        run: echo Repository secret ${{ secrets.TEST_SECRET }}
+  # print repository variable
+  print-repo-variable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log repository variable
+        run: echo Repository secret ${{ vars.TEST_VAR }}
