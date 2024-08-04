@@ -1,29 +1,49 @@
 'use client';
 
-import Link from 'next/link';
+import {Menubar} from "primereact/menubar";
+import {useRouter, usePathname} from "next/navigation";
+import {Button} from "primereact/button";
 
-export interface NavButton {
+export interface NavLink {
     label: string;
     href: string;
 }
 
-export interface AppHeaderParams {
-    navButtons: NavButton[];
+function calcNavLinks(pathName: string): NavLink[] {
+    switch (pathName) {
+        case "/":
+            return [
+                {label: "Manage Portfolio", href: "/manage-portfolio"}
+            ]
+        case "/manage-portfolio":
+            return [
+                {label: "Home", href: "/"}
+            ]
+        default:
+            return [];
+    }
 }
 
-export default function AppHeader({navButtons}: AppHeaderParams) {
+export default function AppHeader() {
+    const router = useRouter();
+    const pathName = usePathname();
+
+    const menuBarStartTemplate = () => {
+        return <h3>My portfolio app</h3>;
+    }
+
+    const menuBarEndTemplate = () => {
+        const navLinks = calcNavLinks(pathName);
+        return <div>
+            {navLinks.map((link) => {
+                return <Button key={link.href} label={link.label} onClick={() => {
+                    router.push(link.href)
+                }}/>
+            })}
+        </div>;
+    }
+
     return (
-        <div className="flex justify-between items-center p-4 bg-gray-200">
-            <h1 className="text-2xl text-white font-bold">My App</h1>
-            <nav className="flex gap-4">
-                {navButtons.map((button, index) => (
-                    <Link key={index} href={button.href}>
-                        <button
-                            className="bg-white hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded">{button.label}
-                        </button>
-                    </Link>
-                ))}
-            </nav>
-        </div>
+        <Menubar start={menuBarStartTemplate} end={menuBarEndTemplate} model={[]}/>
     )
 }

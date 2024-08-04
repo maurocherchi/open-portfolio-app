@@ -1,27 +1,19 @@
-interface Transaction {
+export interface Transaction {
     id: string;
     date: Date;
-    type: 'Buy' | 'Sell';
+    type: string;
     description: string;
     quantity: number;
     amount: number;
 }
 
 export const mockTransactions: Transaction[] = [
-    {
-        id: '1',
-        date: new Date('2023-01-01'),
-        type: 'Buy',
-        description: 'Stock A',
-        quantity: 100,
-        amount: 1000,
-    },
-    {
-        id: '2',
-        date: new Date('2023-01-02'),
-        type: 'Sell',
-        description: 'Stock B',
-        quantity: 50,
-        amount: 500,
-    },
+    ...Array.from({length: 30}, (_, i) => ({
+        id: `transaction-${i}`,
+        date: new Date(2023, 5, i + 1),
+        type: i % 2 === 0 ? 'Buy' : 'Sell',
+        description: `Stock ${i}`,
+        quantity: Math.floor(Math.random() * 100),
+        amount: Math.floor(Math.random() * 1000),
+    }))
 ];
