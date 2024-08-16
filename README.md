@@ -13,7 +13,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 * Node.js
 * Next.js
 * Tailwindcss
-* Primereact
+* [Tailwind components](https://tailwindui.com/components)
 
 ### Deployment
 

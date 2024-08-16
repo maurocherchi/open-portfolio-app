@@ -1,8 +1,8 @@
 import type {Metadata} from "next";
 import {Inter} from "next/font/google";
-import {PrimeReactProvider} from 'primereact/api';
-import "primereact/resources/themes/md-light-indigo/theme.css";
 import AppHeader from "@/app/_components/AppHeader";
+
+import "./globals.css";
 
 const inter = Inter({subsets: ["latin"]});
 
@@ -19,10 +19,8 @@ export default function RootLayout({
     return (
         <html lang="en">
         <body className={inter.className}>
-        <PrimeReactProvider>
-            <AppHeader/>
-            {children}
-        </PrimeReactProvider>
+        <AppHeader/>
+        {children}
         </body>
         </html>
     );
