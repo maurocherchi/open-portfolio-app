@@ -117,7 +117,7 @@ export default function ManagePortfolio() {
                             <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{transaction.description}</td>
                             <td className="px-3 py-4 text-sm text-gray-500">{transaction.quantity}</td>
                             <td className="px-3 py-4 text-sm text-gray-500 text-right">{`${transaction.amount} ${transaction.amountCurrency}`}</td>
-                            <td className="py-4 pl-3 text-right text-sm font-medium sm:pr-0">
+                            <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                 <div className="flex flex-row justify-end gap-3">
                                     <button
                                         type="button"
