@@ -6,6 +6,7 @@ export interface Transaction {
     description: string;
     quantity: number;
     amount: number;
+    amountCurrency: string;
 }
 
 export const mockTransactions: Transaction[] = [
@@ -17,5 +18,6 @@ export const mockTransactions: Transaction[] = [
         description: `Stock ${i}`,
         quantity: Math.floor(Math.random() * 100),
         amount: Math.floor(Math.random() * 1000),
+        amountCurrency: 'USD'
     }))
 ];

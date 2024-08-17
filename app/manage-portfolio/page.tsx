@@ -1,18 +1,43 @@
 'use client';
 
-import {mockTransactions, Transaction} from "@/app/_mock_data/transactions";
-import {useEffect, useState} from "react";
+import {mockTransactions, Transaction} from "@/app/_mockData/transactions";
+import {PencilSquareIcon, TrashIcon} from "@heroicons/react/24/outline";
+import {useEffect, useRef, useState} from "react";
+import AlertDialog from "@/app/_components/AlertDialog";
 
 export default function ManagePortfolio() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const selectedTransactionRef = useRef<Transaction | undefined>();
 
     useEffect(() => {
         // TODO load real data
         setTransactions(mockTransactions);
     }, []);
 
+    const handleClickDelete = () => {
+        setAlertOpen(true);
+    }
+
+    const handleConfirmDelete = () => {
+        setTransactions(transactions.filter(t => t !== selectedTransactionRef.current));
+        setAlertOpen(false);
+    }
+
+    const handleCancelDelete = () => {
+        setAlertOpen(false);
+    }
+
+    const prettyPrintTransaction = () => {
+        if (selectedTransactionRef.current === undefined)
+            return "";
+
+        const t = selectedTransactionRef.current;
+        return `${t.type} ${t.amount} ${t.amountCurrency} of ${t.ticker} from ${t.date.toLocaleDateString()} `;
+    }
+
     return (
-        <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
             <div className="sm:flex sm:items-center">
                 <div className="sm:flex-auto">
                     <h1 className="text-base font-semibold leading-6 text-gray-900">Transactions</h1>
@@ -63,7 +88,7 @@ export default function ManagePortfolio() {
                         </th>
                         <th
                             scope="col"
-                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                            className="px-3 py-3.5 text-sm font-semibold text-gray-900 text-right"
                         >
                             Amount
                         </th>
@@ -71,7 +96,7 @@ export default function ManagePortfolio() {
                             scope="col"
                             className="relative py-3.5 pl-3 pr-4 sm:pr-0"
                         >
-                            <span className="sr-only">Edit</span>
+                            <span className="sr-only">Actions</span>
                         </th>
                     </tr>
                     </thead>
@@ -91,17 +116,44 @@ export default function ManagePortfolio() {
                             <td className="hidden px-3 py-4 text-sm text-gray-500 md:table-cell">{transaction.ticker}</td>
                             <td className="hidden px-3 py-4 text-sm text-gray-500 lg:table-cell">{transaction.description}</td>
                             <td className="px-3 py-4 text-sm text-gray-500">{transaction.quantity}</td>
-                            <td className="px-3 py-4 text-sm text-gray-500">{transaction.amount}</td>
-                            <td className="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                <a href="#" className="text-indigo-600 hover:text-indigo-900">
-                                    Edit<span className="sr-only">, {transaction.id}</span>
-                                </a>
+                            <td className="px-3 py-4 text-sm text-gray-500 text-right">{`${transaction.amount} ${transaction.amountCurrency}`}</td>
+                            <td className="py-4 pl-3 text-right text-sm font-medium sm:pr-0">
+                                <div className="flex flex-row justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        aria-label="Edit transaction"
+                                        onClick={() => {
+                                            selectedTransactionRef.current = transaction;
+                                        }}
+                                    >
+                                        <PencilSquareIcon className="size-4 text-gray-500"/>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        aria-label="Delete transaction"
+                                        onClick={() => {
+                                            selectedTransactionRef.current = transaction;
+                                            handleClickDelete();
+                                        }}
+                                    >
+                                        <TrashIcon className="size-4 text-gray-500"/>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     ))}
                     </tbody>
                 </table>
             </div>
+            <AlertDialog
+                open={alertOpen}
+                setOpen={setAlertOpen}
+                onConfirm={handleConfirmDelete}
+                onCancel={handleCancelDelete}
+                title="Delete transaction"
+                message={`Are you sure you want to delete the transaction ${prettyPrintTransaction()}`}
+                actionLabel="Delete"
+            />
         </div>
     );
 }

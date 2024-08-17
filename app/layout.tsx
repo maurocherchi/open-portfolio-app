@@ -3,6 +3,7 @@ import {Inter} from "next/font/google";
 import AppHeader from "@/app/_components/AppHeader";
 
 import "./globals.css";
+import AppFooter from "@/app/_components/AppFooter";
 
 const inter = Inter({subsets: ["latin"]});
 
@@ -20,7 +21,10 @@ export default function RootLayout({
         <html lang="en">
         <body className={inter.className}>
         <AppHeader/>
-        {children}
+        <div className="min-h-screen">
+            {children}
+        </div>
+        <AppFooter/>
         </body>
         </html>
     );
