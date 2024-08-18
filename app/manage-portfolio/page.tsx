@@ -4,9 +4,9 @@ import {mockTransactions, Transaction} from "@/app/_mockData/transactions";
 import {PencilSquareIcon, TrashIcon} from "@heroicons/react/24/outline";
 import {
     ChevronDoubleLeftIcon,
+    ChevronDoubleRightIcon,
     ChevronLeftIcon,
-    ChevronRightIcon,
-    ChevronDoubleRightIcon
+    ChevronRightIcon
 } from '@heroicons/react/20/solid';
 import {useEffect, useRef, useState} from "react";
 import AlertDialog from "@/app/_components/AlertDialog";
@@ -18,22 +18,19 @@ export default function ManagePortfolio() {
 
     const itemsPerPage = 5;
     const [currentPage, setCurrentPage] = useState(1);
-    const totalPages = Math.ceil(transactions.length / itemsPerPage);
+    const [totalPages, setTotalPages] = useState(1);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, transactions.length);
     const visibleTransactions = transactions.slice(startIndex, endIndex);
     const paginationNumbers = (() => {
         if (totalPages > 3) {
-            switch (currentPage) {
-                case 1:
-                case 2:
-                    return [1, 2, 3];
-                case totalPages - 1:
-                case totalPages:
-                    return [totalPages - 2, totalPages - 1, totalPages];
-                default:
-                    return [currentPage - 1, currentPage, currentPage + 1];
-            }
+            if ([1, 2].includes(currentPage))
+                return [1, 2, 3];
+
+            if (currentPage >= totalPages - 1)
+                return [totalPages - 2, totalPages - 1, totalPages];
+
+            return [currentPage - 1, currentPage, currentPage + 1];
         } else {
             return Array.from({length: totalPages}, (_, i) => i + 1);
         }
@@ -42,7 +39,16 @@ export default function ManagePortfolio() {
     useEffect(() => {
         // TODO load real data
         setTransactions(mockTransactions);
+        setTotalPages(Math.ceil(mockTransactions.length / itemsPerPage));
     }, []);
+
+    useEffect(() => {
+        console.log(`CP ${currentPage}, TP ${totalPages}, TR: ${transactions.length}`);
+        if (transactions.length > 0 && currentPage > Math.ceil(transactions.length / itemsPerPage)) {
+            setTotalPages(Math.ceil(transactions.length / itemsPerPage));
+            setCurrentPage(Math.ceil(transactions.length / itemsPerPage));
+        }
+    }, [currentPage, totalPages, transactions]);
 
     function nextPage() {
         if (currentPage < totalPages) {
