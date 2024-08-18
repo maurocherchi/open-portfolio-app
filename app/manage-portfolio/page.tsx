@@ -1,7 +1,13 @@
-'use client';
+"use client";
 
 import {mockTransactions, Transaction} from "@/app/_mockData/transactions";
 import {PencilSquareIcon, TrashIcon} from "@heroicons/react/24/outline";
+import {
+    ChevronDoubleLeftIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    ChevronDoubleRightIcon
+} from '@heroicons/react/20/solid';
 import {useEffect, useRef, useState} from "react";
 import AlertDialog from "@/app/_components/AlertDialog";
 
@@ -10,10 +16,49 @@ export default function ManagePortfolio() {
     const [alertOpen, setAlertOpen] = useState(false);
     const selectedTransactionRef = useRef<Transaction | undefined>();
 
+    const itemsPerPage = 5;
+    const [currentPage, setCurrentPage] = useState(1);
+    const totalPages = Math.ceil(transactions.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, transactions.length);
+    const visibleTransactions = transactions.slice(startIndex, endIndex);
+    const paginationNumbers = (() => {
+        if (totalPages > 3) {
+            switch (currentPage) {
+                case 1:
+                case 2:
+                    return [1, 2, 3];
+                case totalPages - 1:
+                case totalPages:
+                    return [totalPages - 2, totalPages - 1, totalPages];
+                default:
+                    return [currentPage - 1, currentPage, currentPage + 1];
+            }
+        } else {
+            return Array.from({length: totalPages}, (_, i) => i + 1);
+        }
+    })();
+
     useEffect(() => {
         // TODO load real data
         setTransactions(mockTransactions);
     }, []);
+
+    function nextPage() {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    }
+
+    function setPage(page: number) {
+        setCurrentPage(page);
+    }
 
     const handleClickDelete = () => {
         setAlertOpen(true);
@@ -101,7 +146,7 @@ export default function ManagePortfolio() {
                     </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                    {transactions.map((transaction) => (
+                    {visibleTransactions.map((transaction) => (
                         <tr key={transaction.id}>
                             <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-0">
                                 {transaction.date.toLocaleDateString()}
@@ -144,6 +189,98 @@ export default function ManagePortfolio() {
                     ))}
                     </tbody>
                 </table>
+            </div>
+            <div className="flex items-center justify-between border-t border-gray-200 bg-white py-3">
+                <div className="flex flex-1 justify-between items-center sm:hidden">
+                    <button
+                        type="button"
+                        onClick={prevPage}
+                        className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                        Previous
+                    </button>
+                    <p className="text-sm text-gray-700">
+                        {currentPage}/{totalPages}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={nextPage}
+                        className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                        Next
+                    </button>
+                </div>
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                    <div>
+                        <p className="text-sm text-gray-700">
+                            Showing <span className="font-medium">{startIndex + 1}</span> to <span
+                            className="font-medium">{endIndex}</span> of{' '}
+                            <span className="font-medium">{transactions.length}</span> results
+                        </p>
+                    </div>
+                    <div>
+                        <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+                            <button
+                                type="button"
+                                onClick={() => setPage(1)}
+                                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                            >
+                                <span className="sr-only">First page</span>
+                                <ChevronDoubleLeftIcon aria-hidden="true" className="h-5 w-5"/>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={prevPage}
+                                className="relative inline-flex w-12 justify-center items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                            >
+                                <span className="sr-only">Previous</span>
+                                <ChevronLeftIcon aria-hidden="true" className="h-5 w-5"/>
+                            </button>
+                            {!paginationNumbers.includes(1) &&
+                                <span
+                                    className="relative inline-flex w-12 justify-center items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
+                                    ...
+                                </span>
+                            }
+                            {paginationNumbers.map((index) => {
+                                const inactiveClassNames = "relative inline-flex w-12 justify-center items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0";
+                                const activeClassNames = "relative z-10 inline-flex w-12 justify-center items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600";
+                                const buttonClasses = index === currentPage ? activeClassNames : inactiveClassNames;
+                                return <button
+                                    key={index}
+                                    type="button"
+                                    onClick={() => setPage(index)}
+                                    aria-current="page"
+                                    className={buttonClasses}
+                                >
+                                    {index}
+                                </button>
+                            })}
+                            {!paginationNumbers.includes(totalPages) &&
+                                <span
+                                    className="relative inline-flex w-12 justify-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
+                                    ...
+                                </span>
+                            }
+                            <button
+                                type="button"
+                                onClick={nextPage}
+                                className="relative inline-flex w-12 justify-center items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                            >
+                                <span className="sr-only">Next</span>
+                                <ChevronRightIcon aria-hidden="true" className="h-5 w-5"/>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPage(totalPages)}
+                                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                            >
+                                <span className="sr-only">Last page</span>
+                                <ChevronDoubleRightIcon aria-hidden="true" className="h-5 w-5"/>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
             </div>
             <AlertDialog
                 open={alertOpen}

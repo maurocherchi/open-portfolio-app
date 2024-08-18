@@ -15,11 +15,11 @@ function calcNavLinks(pathName: string): NavLink[] {
         case "/":
             return [
                 {label: "Manage Portfolio", icon: Cog6ToothIcon, href: "/manage-portfolio"}
-            ]
+            ];
         case "/manage-portfolio":
             return [
                 {label: "Home", icon: HomeIcon, href: "/"}
-            ]
+            ];
         default:
             return [];
     }
@@ -49,7 +49,7 @@ export default function AppHeader() {
                                 onClick={() => router.push(link.href)}
                             >
                                 <Icon className="text-white size-6 stroke-1.5" aria-hidden="true"/>
-                            </button>
+                            </button>;
                         })}
                     </div>
                 </div>

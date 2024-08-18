@@ -10,7 +10,7 @@ export interface Transaction {
 }
 
 export const mockTransactions: Transaction[] = [
-    ...Array.from({length: 30}, (_, i) => ({
+    ...Array.from({length: 300}, (_, i) => ({
         id: `transaction-${i}`,
         date: new Date(2023, 5, i + 1),
         type: i % 2 === 0 ? 'Buy' : 'Sell',
