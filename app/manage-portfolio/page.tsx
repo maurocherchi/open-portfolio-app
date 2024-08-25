@@ -1,6 +1,6 @@
 "use client";
 
-import {mockTransactions, Transaction} from "@/app/_mockData/transactions";
+import {mockTransactions} from "@/app/_mockData/transactions";
 import {PencilSquareIcon, TrashIcon} from "@heroicons/react/24/outline";
 import {
     ChevronDoubleLeftIcon,
@@ -8,13 +8,16 @@ import {
     ChevronLeftIcon,
     ChevronRightIcon
 } from '@heroicons/react/20/solid';
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import AlertDialog from "@/app/_components/AlertDialog";
+import {Transaction} from "@/app/_domain/Transaction";
+import TransactionDialog from "@/app/manage-portfolio/TransactionDialog";
 
 export default function ManagePortfolio() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [alertOpen, setAlertOpen] = useState(false);
-    const selectedTransactionRef = useRef<Transaction | undefined>();
+    const [trDialogOpen, setTrDialogOpen] = useState(false);
+    const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>(undefined);
 
     const itemsPerPage = 5;
     const [currentPage, setCurrentPage] = useState(1);
@@ -43,7 +46,6 @@ export default function ManagePortfolio() {
     }, []);
 
     useEffect(() => {
-        console.log(`CP ${currentPage}, TP ${totalPages}, TR: ${transactions.length}`);
         if (transactions.length > 0 && currentPage > Math.ceil(transactions.length / itemsPerPage)) {
             setTotalPages(Math.ceil(transactions.length / itemsPerPage));
             setCurrentPage(Math.ceil(transactions.length / itemsPerPage));
@@ -71,7 +73,7 @@ export default function ManagePortfolio() {
     }
 
     const handleConfirmDelete = () => {
-        setTransactions(transactions.filter(t => t !== selectedTransactionRef.current));
+        setTransactions(transactions.filter(t => t !== selectedTransaction));
         setAlertOpen(false);
     }
 
@@ -80,11 +82,35 @@ export default function ManagePortfolio() {
     }
 
     const prettyPrintTransaction = () => {
-        if (selectedTransactionRef.current === undefined)
+        if (selectedTransaction === undefined)
             return "";
 
-        const t = selectedTransactionRef.current;
-        return `${t.type} ${t.amount} ${t.amountCurrency} of ${t.ticker} from ${t.date.toLocaleDateString()} `;
+        const t = selectedTransaction;
+        return `${t.type} ${t.amount} ${t.amountCurrency} of ${t.ticker} from ${t.date.toLocaleString()} `;
+    }
+
+    const handleClickAdd = () => {
+        setTrDialogOpen(true);
+    }
+
+    const handleClickEdit = () => {
+        setTrDialogOpen(true);
+    }
+
+    const handleDialogConfirm = (transaction: Transaction) => {
+        setTrDialogOpen(false);
+        console.log(transaction);
+        if(transaction.id === undefined){
+            setTransactions([...transactions, transaction])
+        } else {
+            setTransactions(transactions.map(t => t.id === transaction.id ? transaction : t));
+        }
+        setSelectedTransaction(undefined);
+    }
+
+    const handleDialogCancel = () => {
+        setTrDialogOpen(false);
+        setSelectedTransaction(undefined);
     }
 
     return (
@@ -99,6 +125,7 @@ export default function ManagePortfolio() {
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                     <button
                         type="button"
+                        onClick={handleClickAdd}
                         className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                     >
                         Add Transaction
@@ -155,7 +182,7 @@ export default function ManagePortfolio() {
                     {visibleTransactions.map((transaction) => (
                         <tr key={transaction.id}>
                             <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:w-auto sm:max-w-none sm:pl-0">
-                                {transaction.date.toLocaleDateString()}
+                                {transaction.date.toUTCString()}
                                 <dl className="font-normal md:hidden">
                                     <dt className="sr-only">Type</dt>
                                     <dd className="mt-1 truncate text-gray-700">{transaction.type}</dd>
@@ -174,7 +201,8 @@ export default function ManagePortfolio() {
                                         type="button"
                                         aria-label="Edit transaction"
                                         onClick={() => {
-                                            selectedTransactionRef.current = transaction;
+                                            setSelectedTransaction({...transaction});
+                                            handleClickEdit();
                                         }}
                                     >
                                         <PencilSquareIcon className="size-4 text-gray-500"/>
@@ -183,7 +211,7 @@ export default function ManagePortfolio() {
                                         type="button"
                                         aria-label="Delete transaction"
                                         onClick={() => {
-                                            selectedTransactionRef.current = transaction;
+                                            setSelectedTransaction({...transaction});
                                             handleClickDelete();
                                         }}
                                     >
@@ -196,6 +224,8 @@ export default function ManagePortfolio() {
                     </tbody>
                 </table>
             </div>
+
+            {/* pagination */}
             <div className="flex items-center justify-between border-t border-gray-200 bg-white py-3">
                 <div className="flex flex-1 justify-between items-center sm:hidden">
                     <button
@@ -288,6 +318,7 @@ export default function ManagePortfolio() {
                     </div>
                 </div>
             </div>
+
             <AlertDialog
                 open={alertOpen}
                 setOpen={setAlertOpen}
@@ -296,6 +327,14 @@ export default function ManagePortfolio() {
                 title="Delete transaction"
                 message={`Are you sure you want to delete the transaction ${prettyPrintTransaction()}`}
                 actionLabel="Delete"
+            />
+            <TransactionDialog
+                key={selectedTransaction?.id}
+                open={trDialogOpen}
+                setOpen={setTrDialogOpen}
+                onConfirm={handleDialogConfirm}
+                onCancel={handleDialogCancel}
+                initialTransaction={selectedTransaction}
             />
         </div>
     );
