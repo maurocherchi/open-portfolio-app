@@ -1,6 +1,5 @@
 "use client";
 
-import {mockTransactions} from "@/app/_mockData/transactions";
 import {PencilSquareIcon, TrashIcon} from "@heroicons/react/24/outline";
 import {
     ChevronDoubleLeftIcon,
@@ -12,6 +11,7 @@ import {useEffect, useState} from "react";
 import AlertDialog from "@/app/_components/AlertDialog";
 import {Transaction} from "@/app/_domain/Transaction";
 import TransactionDialog from "@/app/manage-portfolio/TransactionDialog";
+import {loadTransactions, storeTransactions} from "@/app/_repositories/TransactionRepo";
 
 export default function ManagePortfolio() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -21,36 +21,48 @@ export default function ManagePortfolio() {
 
     const itemsPerPage = 5;
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const totalPages = Math.ceil(transactions.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, transactions.length);
     const visibleTransactions = transactions.slice(startIndex, endIndex);
-    const paginationNumbers = (() => {
+    const paginationNumbers = calculatePageNumbers();
+
+    function calculatePageNumbers() {
+        const pageNumbers = [];
+        let startPage = Math.max(1, currentPage - 1);
+        let endPage = Math.min(totalPages, currentPage + 1);
+
         if (totalPages > 3) {
-            if ([1, 2].includes(currentPage))
-                return [1, 2, 3];
-
-            if (currentPage >= totalPages - 1)
-                return [totalPages - 2, totalPages - 1, totalPages];
-
-            return [currentPage - 1, currentPage, currentPage + 1];
-        } else {
-            return Array.from({length: totalPages}, (_, i) => i + 1);
+            if (currentPage === 1) {
+                endPage = Math.min(3, totalPages);
+            } else if (currentPage === totalPages) {
+                startPage = Math.max(1, totalPages - 2);
+            }
         }
-    })();
+
+        for (let i = startPage; i <= endPage; i++) {
+            pageNumbers.push(i);
+        }
+
+        return pageNumbers;
+    }
 
     useEffect(() => {
-        // TODO load real data
-        setTransactions(mockTransactions);
-        setTotalPages(Math.ceil(mockTransactions.length / itemsPerPage));
+        async function loadAndSetTrans() {
+            const loadedTrans = await loadTransactions();
+            setTransactions(loadedTrans);
+        }
+
+        loadAndSetTrans().catch(
+            reason => console.log(`There was a problem loading the transactions. Reason: ${reason}`)
+        );
     }, []);
 
     useEffect(() => {
         if (transactions.length > 0 && currentPage > Math.ceil(transactions.length / itemsPerPage)) {
-            setTotalPages(Math.ceil(transactions.length / itemsPerPage));
             setCurrentPage(Math.ceil(transactions.length / itemsPerPage));
         }
-    }, [currentPage, totalPages, transactions]);
+    }, [currentPage, transactions]);
 
     function nextPage() {
         if (currentPage < totalPages) {
@@ -64,16 +76,14 @@ export default function ManagePortfolio() {
         }
     }
 
-    function setPage(page: number) {
-        setCurrentPage(page);
-    }
-
     const handleClickDelete = () => {
         setAlertOpen(true);
     }
 
     const handleConfirmDelete = () => {
-        setTransactions(transactions.filter(t => t !== selectedTransaction));
+        const newList = transactions.filter(t => t.id !== selectedTransaction?.id);
+        setTransactions(newList);
+        storeTransactions(newList);
         setAlertOpen(false);
     }
 
@@ -99,12 +109,14 @@ export default function ManagePortfolio() {
 
     const handleDialogConfirm = (transaction: Transaction) => {
         setTrDialogOpen(false);
-        console.log(transaction);
-        if(transaction.id === undefined){
-            setTransactions([...transactions, transaction])
+        let newList = [];
+        if (transaction.id === undefined) {
+            newList = [...transactions, transaction];
         } else {
-            setTransactions(transactions.map(t => t.id === transaction.id ? transaction : t));
+            newList = transactions.map(t => t.id === transaction.id ? transaction : t);
         }
+        setTransactions(newList);
+        storeTransactions(newList);
         setSelectedTransaction(undefined);
     }
 
@@ -258,7 +270,7 @@ export default function ManagePortfolio() {
                         <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-md shadow-sm">
                             <button
                                 type="button"
-                                onClick={() => setPage(1)}
+                                onClick={() => setCurrentPage(1)}
                                 className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                             >
                                 <span className="sr-only">First page</span>
@@ -285,7 +297,7 @@ export default function ManagePortfolio() {
                                 return <button
                                     key={index}
                                     type="button"
-                                    onClick={() => setPage(index)}
+                                    onClick={() => setCurrentPage(index)}
                                     aria-current="page"
                                     className={buttonClasses}
                                 >
@@ -308,7 +320,7 @@ export default function ManagePortfolio() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setPage(totalPages)}
+                                onClick={() => setCurrentPage(totalPages)}
                                 className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                             >
                                 <span className="sr-only">Last page</span>
