@@ -14,6 +14,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 * Next.js
 * Tailwindcss
 * [Tailwind components](https://tailwindui.com/components)
+* [ApexCharts](https://apexcharts.com/)
+
+### Stock market APIs
+
+* [Historical price](https://site.financialmodelingprep.com/developer/docs#daily-chart-charts)
+* [Current price](https://site.financialmodelingprep.com/developer/docs#simple-quote-quote)
 
 ### Deployment
 
