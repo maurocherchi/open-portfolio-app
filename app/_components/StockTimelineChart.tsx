@@ -84,6 +84,7 @@ export function StockTimelineChart() {
             options={options}
             series={series}
             type="line"
+            height="400px"
             // width="500"
         />
     );
