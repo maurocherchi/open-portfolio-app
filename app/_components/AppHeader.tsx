@@ -4,6 +4,7 @@ import {Cog6ToothIcon, HomeIcon} from "@heroicons/react/24/outline";
 import {usePathname, useRouter} from "next/navigation";
 import React from "react";
 import {Menu, MenuButton, MenuItem, MenuItems} from "@headlessui/react";
+import Link from "next/link";
 
 export interface NavLink {
     label: string;
@@ -67,12 +68,12 @@ export default function AppHeader() {
                                     {navLinks.map((link) => {
                                         return (
                                             <MenuItem key={link.href}>
-                                                <a
+                                                <Link
                                                     href={link.href}
                                                     className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
                                                 >
                                                     {link.label}
-                                                </a>
+                                                </Link>
                                             </MenuItem>
                                         );
                                     })}
