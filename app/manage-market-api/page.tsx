@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {useEffect, useState} from "react";
-import {loadApiKey, resetApiKey, storeApiKey} from "@/app/_repositories/ApiConnectionRepo";
+import {loadApiKey, resetApiKey, storeApiKey} from "@/app/_repositories/AppConfigRepo";
 import {EyeIcon, EyeSlashIcon} from "@heroicons/react/24/outline";
 import {testApiKey} from "@/app/_service/FmpService";
 
