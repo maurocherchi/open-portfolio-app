@@ -5,12 +5,14 @@ import {useEffect, useState} from "react";
 import {loadApiKey, resetApiKey, storeApiKey} from "@/app/_repositories/AppConfigRepo";
 import {EyeIcon, EyeSlashIcon} from "@heroicons/react/24/outline";
 import {testApiKey} from "@/app/_service/FmpService";
+import {useNotificationsDispatch} from "@/app/_context/NotificationContext";
 
 export default function ManageApi() {
     const [apiKeyExists, setApiKeyExists] = useState(false);
     const [apiKey, setApiKey] = useState<string>("");
     const [showApiKey, setShowApiKey] = useState<boolean>(false);
     const hiddenApiKey = apiKey ? apiKey.replace(/./g, '*') : "";
+    const dispatchNotification = useNotificationsDispatch();
 
     useEffect(() => {
         (async () => {
@@ -25,35 +27,120 @@ export default function ManageApi() {
                 }
             } catch (error) {
                 console.error("Error loading API key:", error);
+                dispatchNotification({
+                    type: "add",
+                    notification: {
+                        id: Date.now(),
+                        title: "Error loading API key",
+                        message: "Please try again later",
+                        type: "error"
+                    }
+                });
             }
         })();
-    }, []);
+    }, [dispatchNotification]);
 
     function handleSaveClick() {
-        if(apiKey)
-            storeApiKey(apiKey).catch((error) => console.error("Error storing API key:", error));
+        if (apiKey)
+            storeApiKey(apiKey)
+                .then(() => {
+                    dispatchNotification({
+                        type: "add",
+                        notification: {
+                            id: Date.now(),
+                            title: "API key saved",
+                            message: "API key saved successfully",
+                            type: "success"
+                        }
+                    });
+                })
+                .catch(() => {
+                    dispatchNotification({
+                        type: "add",
+                        notification: {
+                            id: Date.now(),
+                            title: "Error storing API key",
+                            message: "Please try again later",
+                            type: "error"
+                        }
+                    });
+                });
         else
-            console.error("No API key to store");
+            dispatchNotification({
+                type: "add",
+                notification: {
+                    id: Date.now(),
+                    title: "API key is empty",
+                    message: "Please enter a valid API key",
+                    type: "error"
+                }
+            })
     }
 
     async function handleTestClick() {
-        if(apiKey) {
+        if (apiKey) {
             const testResult = await testApiKey(apiKey);
             switch (testResult) {
                 case "valid":
-                    console.log("API key is valid");
+                    dispatchNotification({
+                        type: "add",
+                        notification: {
+                            id: Date.now(),
+                            title: "API key is valid",
+                            message: "API key is valid",
+                            type: "success"
+                        }
+                    });
                     break;
                 case "invalid":
-                    console.log("API key is invalid");
+                    dispatchNotification({
+                        type: "add",
+                        notification: {
+                            id: Date.now(),
+                            title: "API key is invalid",
+                            message: "API key is invalid",
+                            type: "error"
+                        }
+                    });
                     break;
             }
         } else {
-            console.error("No API key to test");
+            dispatchNotification({
+                type: "add",
+                notification: {
+                    id: Date.now(),
+                    title: "API key is empty",
+                    message: "Please enter a valid API key",
+                    type: "error"
+                }
+            })
         }
     }
 
     function handleResetClick() {
-        resetApiKey().catch((error) => console.error("Error resetting API key:", error));
+        resetApiKey()
+            .then(() => {
+                dispatchNotification({
+                    type: "add",
+                    notification: {
+                        id: Date.now(),
+                        title: "API key reset",
+                        message: "API key reset successfully",
+                        type: "success"
+                    }
+                });
+            })
+            .catch(() => {
+                dispatchNotification({
+                    type: "add",
+                    notification: {
+                        id: Date.now(),
+                        title: "Error resetting API key",
+                        message: "Please try again later",
+                        type: "error"
+                    }
+                });
+            });
     }
 
     return (

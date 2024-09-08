@@ -4,6 +4,8 @@ import AppHeader from "@/app/_components/AppHeader";
 
 import "./globals.css";
 import AppFooter from "@/app/_components/AppFooter";
+import NotificationsProvider from "@/app/_context/NotificationContext";
+import NotificationsRegion from "@/app/_components/NotificationRegion";
 
 const inter = Inter({subsets: ["latin"]});
 
@@ -21,9 +23,12 @@ export default function RootLayout({
         <html lang="en">
         <body className={inter.className}>
         <AppHeader/>
-        <div className="min-h-screen">
-            {children}
-        </div>
+        <NotificationsProvider>
+            <div className="min-h-screen">
+                {children}
+                <NotificationsRegion/>
+            </div>
+        </NotificationsProvider>
         <AppFooter/>
         </body>
         </html>

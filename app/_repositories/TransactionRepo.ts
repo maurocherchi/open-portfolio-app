@@ -24,10 +24,21 @@ const mockTransactions: Transaction[] = [
 
 export async function loadTransactions(): Promise<Transaction[]> {
     // TODO read transactions
+    console.log("Loading mock transactions");
     return mockTransactions;
 }
 
-export async function storeTransactions(transactions: Transaction[]) {
+export async function storeTransactions(transactions: Transaction[]): Promise<Transaction[]> {
     // TODO Implement logic to store transactions
     console.log("Transactions stored:", transactions);
+    return transactions.map(t => {
+        if(!t.id){
+            return {
+                ...t,
+                id: `transaction-${Date.now()}`
+            }
+        } else {
+            return t;
+        }
+    });
 }

@@ -12,8 +12,10 @@ import AlertDialog from "@/app/_components/AlertDialog";
 import {Transaction} from "@/app/_domain/Transaction";
 import TransactionDialog from "@/app/manage-portfolio/TransactionDialog";
 import {loadTransactions, storeTransactions} from "@/app/_repositories/TransactionRepo";
+import {useNotificationsDispatch} from "@/app/_context/NotificationContext";
 
 export default function ManagePortfolio() {
+    const dispatchNotification = useNotificationsDispatch();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [alertOpen, setAlertOpen] = useState(false);
     const [trDialogOpen, setTrDialogOpen] = useState(false);
@@ -48,15 +50,20 @@ export default function ManagePortfolio() {
     }
 
     useEffect(() => {
-        async function loadAndSetTrans() {
-            const loadedTrans = await loadTransactions();
-            setTransactions(loadedTrans);
-        }
-
-        loadAndSetTrans().catch(
-            reason => console.log(`There was a problem loading the transactions. Reason: ${reason}`)
-        );
-    }, []);
+        loadTransactions()
+            .then((loadedTrans) => setTransactions(loadedTrans))
+            .catch(() => {
+                dispatchNotification({
+                    type: 'add',
+                    notification: {
+                        id: Date.now(),
+                        title: 'Error loading transactions',
+                        message: 'There was an error loading the transactions',
+                        type: 'error'
+                    }
+                });
+            });
+    }, [dispatchNotification]);
 
     useEffect(() => {
         if (transactions.length > 0 && currentPage > Math.ceil(transactions.length / itemsPerPage)) {
@@ -80,11 +87,33 @@ export default function ManagePortfolio() {
         setAlertOpen(true);
     }
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         const newList = transactions.filter(t => t.id !== selectedTransaction?.id);
         setTransactions(newList);
-        storeTransactions(newList);
         setAlertOpen(false);
+        try {
+            await storeTransactions(newList);
+            dispatchNotification({
+                type: 'add',
+                notification: {
+                    id: Date.now(),
+                    title: 'Success',
+                    message: 'Transaction deleted',
+                    type: 'success'
+                }
+            });
+        } catch (e) {
+            setTransactions(transactions);
+            dispatchNotification({
+                type: 'add',
+                notification: {
+                    id: Date.now(),
+                    title: 'Error',
+                    message: 'There was an error deleting the transaction',
+                    type: 'error'
+                }
+            });
+        }
     }
 
     const handleCancelDelete = () => {
@@ -107,17 +136,40 @@ export default function ManagePortfolio() {
         setTrDialogOpen(true);
     }
 
-    const handleDialogConfirm = (transaction: Transaction) => {
+    const handleDialogConfirm = async (transaction: Transaction) => {
         setTrDialogOpen(false);
-        let newList = [];
+        let newList;
         if (transaction.id === undefined) {
             newList = [...transactions, transaction];
         } else {
             newList = transactions.map(t => t.id === transaction.id ? transaction : t);
         }
         setTransactions(newList);
-        storeTransactions(newList);
         setSelectedTransaction(undefined);
+        try {
+            const storedTransactions = await storeTransactions(newList);
+            setTransactions(storedTransactions);
+            dispatchNotification({
+                type: 'add',
+                notification: {
+                    id: Date.now(),
+                    title: 'Success',
+                    message: 'Transaction saved',
+                    type: 'success'
+                }
+            });
+        } catch (e) {
+            dispatchNotification({
+                type: 'add',
+                notification: {
+                    id: Date.now(),
+                    title: 'Error',
+                    message: 'There was an error saving the transaction',
+                    type: 'error'
+                }
+            });
+            setTransactions(transactions);
+        }
     }
 
     const handleDialogCancel = () => {
